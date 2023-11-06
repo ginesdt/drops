@@ -1,0 +1,109 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["jsonProtocol"]
+}
+
+// datasource db {
+//   provider = "sqlite"
+//   url      = "file:./dev.db"
+// }
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Message {
+  hash       String   @id
+  sender     String
+  timestamp  DateTime
+  content    String
+  inReplyTo  String?
+  url        String
+  categoryId Int?
+  hidden     Boolean  @default(false)
+  origin     String?
+
+  user     User?         @relation(fields: [sender], references: [address])
+  tags     MessageXTag[]
+  category Category?     @relation(fields: [categoryId], references: [id])
+  medias   Media[]
+  votes    Vote[]
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  messages MessageXTag[]
+
+  @@unique([name])
+}
+
+model MessageXTag {
+  message     Message @relation(fields: [messageHash], references: [hash])
+  messageHash String
+  tag         Tag     @relation(fields: [tagId], references: [id])
+  tagId       Int
+
+  @@id([messageHash, tagId])
+}
+
+model Category {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  messages Message[]
+
+  @@unique([name])
+}
+
+model Media {
+  id   Int    @id @default(autoincrement())
+  url  String
+  type String
+
+  Message     Message? @relation(fields: [messageHash], references: [hash])
+  messageHash String?
+}
+
+model User {
+  address         String  @id
+  lastHash        String
+  indexLink       String  @default("")
+  storageInfoLink String  @default("")
+  name            String?
+  description     String?
+  profileImage    String?
+  backgroundImage String?
+  avatar          String?
+  tags            String?
+  links           String?
+
+  messages  Message[]
+  votes     Vote[]
+  followers Follower[] @relation(name: "follower")
+  following Follower[] @relation(name: "following")
+}
+
+model Vote {
+  sender String
+  hash   String
+  like   Boolean
+
+  user    User?   @relation(fields: [sender], references: [address])
+  message Message @relation(fields: [hash], references: [hash])
+
+  @@id([sender, hash])
+}
+
+model Follower {
+  following String
+  follower  String
+
+  followerUser  User? @relation(fields: [follower], references: [address], name: "follower")
+  followingUser User? @relation(fields: [following], references: [address], name: "following")
+
+  @@id([follower, following])
+}
