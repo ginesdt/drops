@@ -28,7 +28,7 @@ export default function RootLayout({
             <NotificationBar />
             <main className="flex w-full justify-center pt-16">
               <div className="w-[1200px]">
-                <Categories className="fixed w-[280px] h-full overflow-auto" />
+                <Categories className="fixed w-[280px] h-[calc(100%-4rem)] overflow-auto" />
                 {children}
               </div>
             </main>
